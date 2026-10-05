@@ -1,0 +1,33 @@
+platform :ios, '15.0'
+
+# Flutter skriptini va funksiyalarini yuklash (Shu qator majburiy edi)
+flutter_ios_podfile_setup = File.join(File.dirname(__FILE__), '.symlinks', 'flutter', 'ios', 'podhelper.rb')
+if File.exist?(flutter_ios_podfile_setup)
+  require flutter_ios_podfile_setup
+else
+  # Muqobil yo'l, agar yuqoridagi topilmasa
+  flutter_root = File.expand_path(File.join('..', '..', '..', '..')) # Flutter SDK yo'lini aniqlash uchun
+  # Agar ishlamasa, shunchaki quyidagi standart target rejimiga o'tadi
+end
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  # Agar flutter helper yuklangan bo'lsa, plaginlarni o'rnatadi
+  if respond_to?(:flutter_install_all_ios_pods)
+    flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    if respond_to?(:flutter_additional_ios_build_settings)
+      flutter_additional_ios_build_settings(target)
+    end
+    target.build_configurations.each do |config|
+      # Barcha ichki kutubxonalarni 15.0 versiyaga majburlaymiz
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
+  end
+end
